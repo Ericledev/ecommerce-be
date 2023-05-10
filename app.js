@@ -6,8 +6,8 @@ const mongoose = require("mongoose");
 const User = require("./models/user");
 
 // Declare routers
-// const userRouter = require("./routers/user");
-// const adminRouter = require("./routers/admin");
+const userRouter = require("./routers/user");
+const productRouter = require("./routers/product");
 const verifyRouter = require("./routers/verifyExpire");
 
 const PORT = process.env.PORT;
@@ -22,7 +22,8 @@ app.use(cors());
 
 // Assign routers
 app.use(verifyRouter);
-// app.use("/user", userRouter);
+app.use("/user", userRouter);
+app.use("/product", productRouter);
 // app.use("/admin", adminRouter);
 
 mongoose.connect(URL).then(() => {
