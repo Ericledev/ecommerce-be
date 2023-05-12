@@ -2,40 +2,33 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-const transactionSchema = Schema({
-  user: {
+const orderSchema = Schema({
+  user_id: {
     type: mongoose.Types.ObjectId,
     require: true,
     ref: "User",
   },
-  hotel: {
-    type: mongoose.Types.ObjectId,
-    require: true,
-    ref: "Hotel",
-  },
-  room: [],
-  dateStart: {
-    type: Date,
-    require: true,
-  },
-  dateEnd: {
-    type: Date,
-    require: true,
-  },
-  price: {
-    type: Number,
-    require: true,
-  },
-  payment: {
-    //Credit Card, Cash
+  products: [
+    {
+      product_id: {
+        type: mongoose.Types.ObjectId,
+        require: true,
+        ref: "Product",
+      },
+      quantity: Number,
+    },
+  ],
+  delivery: {
+    //Booked, Checkin, Checkout
     type: String,
     require: true,
+    default: "Waiting for progressing",
   },
   status: {
     //Booked, Checkin, Checkout
     type: String,
     require: true,
-    default: "Booked",
+    default: "Waiting for pay",
   },
   createdAt: {
     type: Date,
@@ -49,7 +42,7 @@ const transactionSchema = Schema({
   },
 });
 
-module.exports = mongoose.model("Transaction", transactionSchema);
+module.exports = mongoose.model("Order", orderSchema);
 
 // transactionSchema.methods.createTrans = function () {
 //   console.log(
