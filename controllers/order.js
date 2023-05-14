@@ -1,9 +1,8 @@
-const { Decimal128 } = require("mongodb");
+const { ObjectId } = require("mongodb");
 const Order = require("../models/order");
 const Product = require("../models/product");
-const { parse } = require("dotenv");
-const io = require("../socket");
 const User = require("../models/user");
+const io = require("../socket");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 
@@ -118,34 +117,34 @@ const addNewOrder = async (req, res) => {
   }
 };
 
-// const getLatestTran = async (req, res) => {
-//   try {
-//     const trans = await Transaction.find()
-//       .populate([
-//         { path: "user", select: "fullName" },
-//         { path: "hotel", select: "name" },
-//       ])
-//       .sort({ updatedAt: "desc" })
-//       .limit(8);
-//     const numOfUsers = (await User.find({ isAdmin: false })).length;
-//     const transaction = await Transaction.find();
-//     const numOfTrans = transaction.length;
-//     const earning = transaction.reduce((total, item) => total + item.price, 0);
-//     const balance = (earning / 12).toFixed(2);
-//     //console.log("CHECK COUNT USER: ", balance.toFixed(2));
+const getOrdersByUser = async (req, res) => {
+  const { userId } = req.query;
+  if (!userId) {
+    res.status(400).json({ message: "User id is required" });
+    return;
+  }
+  try {
+    const orders = await Order.find({
+      user_id: new ObjectId(req.query.userId),
+    })
+      .populate([{ path: "products.product_id" }])
+      .sort({ updatedAt: "desc" });
 
-//     res.status(200).json({
-//       message: "ok",
-//       trans: trans,
-//       numOfUsers,
-//       numOfTrans,
-//       earning,
-//       balance,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
+    // const numOfUsers = (await User.find({ isAdmin: false })).length;
+    // const transaction = await Transaction.find();
+    // const numOfTrans = transaction.length;
+    // const earning = transaction.reduce((total, item) => total + item.price, 0);
+    // const balance = (earning / 12).toFixed(2);
+    //console.log("CHECK COUNT USER: ", balance.toFixed(2));
+
+    res.status(200).json({
+      message: "ok",
+      orders: orders,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
 // const getAllTran = async (req, res) => {
 //   try {
 //     const trans = await Transaction.find().populate([
@@ -161,4 +160,4 @@ const addNewOrder = async (req, res) => {
 //     console.log(error);
 //   }
 // };
-module.exports = { addNewOrder };
+module.exports = { addNewOrder, getOrdersByUser };
