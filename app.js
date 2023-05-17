@@ -4,7 +4,17 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const User = require("./models/user");
-
+const Product = require("./models/product");
+// const product = new Product({
+//   category: "iphone",
+//   long_desc: "Tính năng nổi bật",
+//   name: "Apple iPhone 13 Pro Max - Alpine Green",
+//   price: 29390000,
+//   short_desc:
+//     "iPhone 13 Pro Max. Một nâng cấp hệ thống camera chuyên nghiệp hoành tr…",
+//   quantity: 80,
+// });
+// product.save();
 // Declare routers
 const userRouter = require("./routers/user");
 const orderRouter = require("./routers/order");

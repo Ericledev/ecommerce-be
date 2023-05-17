@@ -5,6 +5,7 @@ const productController = require("../controllers/product");
 // const Product = require("../models/product");
 
 router.get("/get-all-products", productController.getAllProducts);
+router.delete("/delete-product", productController.deleteProducts);
 
 // router.post("/create-trans", userController.handleUserCreateTrans);
 
