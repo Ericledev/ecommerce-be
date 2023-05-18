@@ -38,8 +38,34 @@ const deleteProducts = async (req, res, next) => {
     });
   }
 };
-
+const updateProduct = async (req, res, next) => {
+  try {
+    console.log("check req: ", req.body);
+    const { _id, category, long_desc, name, short_desc } = req.body;
+    if (!req.body) {
+      res.status(400).json({ message: "Product id is required" });
+      return;
+    }
+    const findProduct = await Product.findById(_id);
+    if (!findProduct) {
+      res.status(401).json({ message: "Not found product" });
+      return;
+    }
+    findProduct.category = category;
+    findProduct.name = name;
+    findProduct.long_desc = long_desc;
+    findProduct.short_desc = short_desc;
+    await findProduct.save();
+    res.status(200).json({ message: "ok" });
+  } catch (error) {
+    console.log("server error: ", error);
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
 module.exports = {
   getAllProducts,
   deleteProducts,
+  updateProduct,
 };
