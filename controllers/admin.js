@@ -1,18 +1,39 @@
 const User = require("../models/user");
-//const Transaction = require("../models/transaction");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const { ObjectId } = require("mongodb");
 
 const handleAdminLogin = (req, res, next) => {
-  const { email, password } = req.body;
-  // Validate user input
-  if (!(email && password)) {
-    res.status(400).send("All input is required");
-  }
-  User.findOne({ email: email, isAdmin: true })
-    .then(async (user) => {
-      if (user && (await bcrypt.compare(password, user.password))) {
+  try {
+    const { email, password } = req.body;
+    // Validate user input
+    if (!(email && password)) {
+      res.status(400).send("All input is required");
+    }
+    User.findOne({ email: email })
+      .then(async (user) => {
+        // check user & pass
+        if (!user) {
+          res.status(420).json({
+            message: "User is not existed",
+          });
+          return;
+        }
+        // check user/account authentiation
+        // console.log("CHECCK out side User: ", user);
+        if (!user.isAdmin && !user.isCounselor) {
+          // console.log("CHECCK in side User: ", user);
+          res.status(404).json({ message: "This account is invalid" });
+          return;
+        }
+
+        const isMatchPass = await bcrypt.compare(password, user.password);
+        if (!isMatchPass) {
+          res.status(421).json({
+            message: "Wrong password",
+          });
+          return;
+        }
+
         // Create token
         const token = jwt.sign(
           {
@@ -29,22 +50,23 @@ const handleAdminLogin = (req, res, next) => {
           user: {
             userId: user._id,
             fullName: user.fullName,
-            phoneNumber: user.phoneNumber,
-            idCard: user.idCard,
             email: user.email,
+            phoneNumber: user.phoneNumber,
+            address: user.address,
             token: user.token,
+            isAdmin: user.isAdmin,
           },
         });
-      } else {
-        res.status(200).json({
-          message: "fail",
-          user: { ok: false },
-        });
-      }
-    })
-    .catch((err) => {
-      console.log(err);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } catch (error) {
+    console.log("CHECK Error: ", error);
+    res.status(500).json({
+      message: "Server error",
     });
+  }
 };
 
 const handleAdminSignUp = (req, res, next) => {

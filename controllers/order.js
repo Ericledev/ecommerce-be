@@ -145,19 +145,19 @@ const getOrdersByUser = async (req, res) => {
     console.log(error);
   }
 };
-// const getAllTran = async (req, res) => {
-//   try {
-//     const trans = await Transaction.find().populate([
-//       { path: "user", select: "fullName" },
-//       { path: "hotel", select: "name" },
-//     ]);
+const getAllOrder = async (req, res) => {
+  try {
+    const orders = await Order.find().populate([
+      { path: "user_id", select: "_id fullName phoneNumber address" },
+      { path: "products.product_id" },
+    ]);
 
-//     res.status(200).json({
-//       message: "ok",
-//       trans: trans,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
-module.exports = { addNewOrder, getOrdersByUser };
+    res.status(200).json({
+      message: "ok",
+      orders: orders,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+module.exports = { addNewOrder, getOrdersByUser, getAllOrder };

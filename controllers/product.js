@@ -1,4 +1,5 @@
 const Product = require("../models/product");
+const User = require("../models/user");
 // const jwt = require("jsonwebtoken");
 // const bcrypt = require("bcryptjs");
 // const validator = require("express-validator");
@@ -64,8 +65,56 @@ const updateProduct = async (req, res, next) => {
     });
   }
 };
+const addNewProduct = async (req, res, next) => {
+  try {
+    console.log("check req: ", req.body);
+    const {
+      userId,
+      category,
+      long_desc,
+      name,
+      short_desc,
+      price,
+      quantity,
+      images,
+    } = req.body;
+    if (!req.body) {
+      res.status(400).json({ message: "Product id is required" });
+      return;
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "not found user" });
+      return;
+    } else {
+      if (!user.isAdmin) {
+        res
+          .status(400)
+          .json({ message: "your account do not allow adding new products" });
+      }
+    }
+
+    // const product = new Product({
+    //   category: category,
+    //   name: name,
+    //   long_desc: long_desc,
+    //   short_desc: short_desc,
+    //   price: price,
+    //   quantity: quantity,
+    //   images: images,
+    // });
+    // await product.save();
+    res.status(200).json({ message: "ok" });
+  } catch (error) {
+    console.log("server error: ", error);
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
 module.exports = {
   getAllProducts,
   deleteProducts,
   updateProduct,
+  addNewProduct,
 };

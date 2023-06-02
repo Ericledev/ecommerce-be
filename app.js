@@ -3,8 +3,6 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const User = require("./models/user");
-const Product = require("./models/product");
 // const product = new Product({
 //   category: "iphone",
 //   long_desc: "Tính năng nổi bật",
@@ -17,9 +15,13 @@ const Product = require("./models/product");
 // product.save();
 // Declare routers
 const userRouter = require("./routers/user");
+const adminRouter = require("./routers/admin");
 const orderRouter = require("./routers/order");
 const productRouter = require("./routers/product");
+const chatRouter = require("./routers/chat");
 const verifyRouter = require("./routers/verifyExpire");
+const Chat = require("./models/chat");
+const { ObjectId } = require("mongodb");
 // const { Socket } = require("socket.io");
 
 const PORT = process.env.PORT;
@@ -37,14 +39,77 @@ app.use(verifyRouter);
 app.use("/order", orderRouter);
 app.use("/user", userRouter);
 app.use("/product", productRouter);
-// app.use("/admin", adminRouter);
+app.use("/chat", chatRouter);
+app.use("/admin", adminRouter);
 
 mongoose.connect(URL).then(() => {
   const server = app.listen(PORT, () => {
     console.log("Server runing at port: ", PORT);
   });
   const io = require("./socket").init(server);
+
   io.on("connection", (socket) => {
-    console.log("client connected");
+    // status connection
+    console.log("client connected under socketId: ", socket.id);
+
+    // Listen DISCONNECT from client
+    socket.on("disconnect", async (data) => {
+      console.log("A client disconnect: ", socket.id);
+      // update action to chat
+      try {
+        // find socket.id. if have, that is socket.id from client custommer else from client admin
+        const findIndex = await Chat.findOne({ socketId: socket.id });
+        if (findIndex) {
+          await Chat.updateOne({ socketId: socket.id }, { action: "OFFLINE" });
+          io.emit("ADMIN_CHANNEL", { action: "OFFLINE", socketId: socket.id });
+        }
+      } catch (error) {
+        console.log("Error when disconnect: ", error);
+      }
+    });
+    // listen from client
+    socket.on("ONLINE_OFFLINE", async (data) => {
+      console.log("CEHCKE DATA ONOFF: ", data);
+      try {
+        const findChatRoom = await Chat.findById(data.roomId);
+        // update socketId to chat
+        if (findChatRoom) {
+          await Chat.updateOne(
+            { _id: data.roomId },
+            { action: data.action, socketId: socket.id }
+          );
+        } else {
+          const chat = await Chat.create({
+            member: ["admin", "client"],
+            total_message: 0,
+            conversation: [],
+            action: "ONLINE",
+            socketId: socket.id,
+          });
+          await chat.save();
+        }
+        // emit to Admin
+        io.emit("ADMIN_CHANNEL", { ...data, socketId: socket.id });
+      } catch (error) {
+        console.log("Error when connected: ", error);
+      }
+    });
+    // listen at TYPING channel from client & admin
+    socket.on("TYPING", (data) => {
+      // emit to client
+      if (data.userId !== "client") {
+        if (data.action === "START_TYPING") {
+          io.emit(data.roomId, { action: "START_TYPING" });
+        } else {
+          io.emit(data.roomId, { action: "STOP_TYPING" });
+        }
+        return;
+      }
+      // emit to admin
+      if (data.userId === "client") {
+        io.emit("ADMIN_CHANNEL", { ...data });
+        return;
+      }
+    });
   });
 });

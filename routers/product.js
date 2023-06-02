@@ -5,8 +5,9 @@ const auth = require("../middleware/auth");
 // const validator = require("express-validator");
 // const Product = require("../models/product");
 
-router.get("/get-all-products", auth, productController.getAllProducts);
+router.get("/get-all-products", productController.getAllProducts);
 router.post("/update-product", auth, productController.updateProduct);
+router.post("/add-new-product", auth, productController.addNewProduct);
 router.delete("/delete-product", auth, productController.deleteProducts);
 
 // router.post("/create-trans", userController.handleUserCreateTrans);
