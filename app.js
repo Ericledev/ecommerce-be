@@ -13,6 +13,7 @@ const mongoose = require("mongoose");
 //   quantity: 80,
 // });
 // product.save();
+
 // Declare routers
 const userRouter = require("./routers/user");
 const adminRouter = require("./routers/admin");
@@ -20,6 +21,7 @@ const orderRouter = require("./routers/order");
 const productRouter = require("./routers/product");
 const chatRouter = require("./routers/chat");
 const verifyRouter = require("./routers/verifyExpire");
+const path = require("path");
 const Chat = require("./models/chat");
 const { ObjectId } = require("mongodb");
 // const { Socket } = require("socket.io");
@@ -29,11 +31,12 @@ const URL = process.env.MONGO_URI;
 
 // create app
 const app = express();
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: "30mb" }));
+app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 
 app.use(cors());
 
+app.use(express.static(path.join(__dirname, "./public")));
 // Assign routers
 app.use(verifyRouter);
 app.use("/order", orderRouter);
